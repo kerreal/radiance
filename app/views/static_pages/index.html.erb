@@ -1,0 +1,23 @@
+<section class="todoapp">
+  <header class="header">
+    <h1>todos</h1>
+  </header>
+
+  <section class="main">
+    <ul class="todo-list">
+
+    </ul>
+  </section>
+</section>
+
+
+
+<script>
+  $(function() {
+    $.get("/mazes").success( function(data) {
+      $.each(data, function(index, maze) {
+        console.log(maze.source);
+      });
+    });
+  });
+</script>
