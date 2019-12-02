@@ -18,6 +18,77 @@
       $.each(data, function(index, maze) {
         console.log(maze.source);
       });
+      mazeCreate();
+      mazeDisplay();
     });
   });
+
+mazeDisplay = function(theMaze) {
+  // theMaze should be an array with several arrays inside of it. 
+    // theMaze[x][1 ... ?] should contain a variable 1-16 that defines which direction each node, or 'Room', is facing
+
+}
+
+mazeCreate = function() {
+  // Maze created with help from Gabriel Valfridsson's CodePen :: https://codepen.io/GabbeV/pen/viAec 
+  width = 25           //Number paths fitted horisontally
+  height = 25          //Number paths fitted vertically
+  pathWidth = 10       //Width of the Maze Path
+  wall = 2             //Width of the Walls between Paths
+  outerWall = 2        //Width of the Outer most wall
+  pathColor = '#222a33'//Color of the path
+  wallColor = '#d24'   //Color of the walls
+  // seed = Math.random()*100000|0//Seed for random numbers
+  x = width/2|0        //Horisontal starting position
+  y = height/2|0       //Vertical starting position
+  // INIT
+  offset = pathWidth/2+outerWall
+  map = []
+  for(var i=0;i<height*2;i++){
+    map[i] = []
+    for(var j=0;j<width*2;j++){
+      map[i][j] = false
+    }
+  }
+  map[y*2][x*2] = true
+  route = [[x,y]]
+  // ctx.moveTo(x*(pathWidth+wall)+offset,y*(pathWidth+wall)+offset)
+  loop();
+};
+
+loop = function(){
+  x = route[route.length-1][0]|0
+  y = route[route.length-1][1]|0
+  
+    //*** changed directions to 2 to allow space for the walls
+  var directions = [[2,0],[-2,0],[0,2],[0,-2]],
+      alternatives = []
+  
+  for(var i=0;i<directions.length;i++){
+    if(map[(directions[i][1]+y)*2]!=undefined&&
+       map[(directions[i][1]+y)*2][(directions[i][0]+x)*2]===false){
+      alternatives.push(directions[i])
+    }
+  }
+  
+  if(alternatives.length===0){
+    route.pop()
+    if(route.length>0){
+      // ctx.moveTo(route[route.length-1][0]*(pathWidth+wall)+offset,route[route.length-1][1]*(pathWidth+wall)+offset)
+      timer = setTimeout(loop,1)
+    }
+    return;
+  }
+  direction = alternatives[Math.random()*alternatives.length|0]
+  route.push([direction[0]+x,direction[1]+y])
+  // ctx.lineTo((direction[0]+x)*(pathWidth+wall)+offset,(direction[1]+y)*(pathWidth+wall)+offset)
+  map[(direction[1]+y)*2][(direction[0]+x)*2] = true
+  map[direction[1]+y*2][direction[0]+x*2] = true
+  // ctx.stroke()
+  timer = setTimeout(loop,1)
+};
+
+
+
+
 </script>
