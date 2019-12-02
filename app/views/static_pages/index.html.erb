@@ -1,35 +1,69 @@
 <section class="todoapp">
   <header class="header">
-    <h1>todos</h1>
+    <h1>Maze Generator</h1>
   </header>
 
-  <section class="main">
-    <ul class="todo-list">
-
-    </ul>
+  <section id="theMaze">
   </section>
+  <input type="submit" value="Submit" onclick="mazeDisplay(map)">
 </section>
 
+<style>
+div {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  }
+
+.mazeRow {}
+.mazeColumn   {color: blue;}
+.Red {
+  background-color: Red;
+}
+.Green {
+  background-color: Green;
+}
+p    {color: red;}
+</style>
 
 
 <script>
-  $(function() {
-    $.get("/mazes").success( function(data) {
-      $.each(data, function(index, maze) {
-        console.log(maze.source);
-      });
-      mazeCreate();
-      mazeDisplay();
+$(function() {
+  $.get("/mazes").success( function(data) {
+    $.each(data, function(index, maze) {
+      console.log(maze.source);
     });
+    mazeCreate();
   });
+});
+
+var mazzztop;
 
 mazeDisplay = function(theMaze) {
   // theMaze should be an array with several arrays inside of it. 
     // theMaze[x][1 ... ?] should contain a variable 1-16 that defines which direction each node, or 'Room', is facing
-
+  var currentRow;
+  mazzztop = theMaze;
+  for (currentRow = 0; currentRow < theMaze.length; currentRow++) {
+    var newRow = $("<div></div>").addClass("mazeRow");
+    console.log("currentRow = " + currentRow + " == " + theMaze[currentRow]);
+    var currentColumn;
+    for (currentColumn = 0; currentColumn < theMaze[currentRow].length; currentColumn++) {
+      console.log(currentRow + " x " + currentColumn + " : " + theMaze[currentRow][currentColumn])
+      var newColumn = $("<div></div>");
+      newColumn.addClass("mazeColumn");
+      if(theMaze[currentRow][currentColumn] == true) {
+        newColumn.addClass("Green").text("T");
+      } else {
+        newColumn.addClass("Red").text("F");
+      }
+      newRow.append(newColumn)
+    }
+    $("#theMaze").append(newRow);
+  }
 }
 
-mazeCreate = function() {
+mazeCreate = function(){
   // Maze created with help from Gabriel Valfridsson's CodePen :: https://codepen.io/GabbeV/pen/viAec 
   width = 25           //Number paths fitted horisontally
   height = 25          //Number paths fitted vertically
@@ -44,6 +78,17 @@ mazeCreate = function() {
   // INIT
   offset = pathWidth/2+outerWall
   map = []
+  // canvas = document.querySelector('canvas')
+  // ctx = canvas.getContext('2d')
+  // canvas.width = outerWall*2+width*(pathWidth+wall)-wall
+  // canvas.height = outerWall*2+height*(pathWidth+wall)-wall
+  // ctx.fillStyle = wallColor
+  // ctx.fillRect(0,0,canvas.width,canvas.height)
+  random = Math.random()*100000|0
+  // ctx.strokeStyle = pathColor
+  // ctx.lineCap = 'square'
+  // ctx.lineWidth = pathWidth
+  // ctx.beginPath()
   for(var i=0;i<height*2;i++){
     map[i] = []
     for(var j=0;j<width*2;j++){
@@ -56,12 +101,16 @@ mazeCreate = function() {
   loop();
 };
 
+random = function(){
+  return Math.random()*100000|0
+};
+
 loop = function(){
   x = route[route.length-1][0]|0
   y = route[route.length-1][1]|0
   
     //*** changed directions to 2 to allow space for the walls
-  var directions = [[2,0],[-2,0],[0,2],[0,-2]],
+  var directions = [[1,0],[-1,0],[0,1],[0,-1]],
       alternatives = []
   
   for(var i=0;i<directions.length;i++){
@@ -87,8 +136,4 @@ loop = function(){
   // ctx.stroke()
   timer = setTimeout(loop,1)
 };
-
-
-
-
 </script>
