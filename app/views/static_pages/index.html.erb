@@ -1,81 +1,374 @@
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+
+</head>
+<body>
+
+
+<section id="viewport">
+  <div class="corner"></div><div class="wallLeftRight"></div><div class="corner"></div><br />
+  <div class="wallUpDown"></div><div class="mainView"></div><div class="wallUpDown"></div><br />
+  <div class="corner"></div><div class="wallLeftRight"></div><div class="corner"></div>
+</section>
+
 <section class="todoapp">
   <header class="header">
     <h1>Maze Generator</h1>
   </header>
+  <section id="viewportTemp">
+    <input type="submit" value="Init" onclick="endStart(); currLocation = Mstart"> <br />
+    <div class="currLoc"></div><div class="currFacing"></div>
+    <br />
+    <div class="forward"></div>
+    <br />
+    <div class="left"></div>
+    <div class="right"></div>
+    <br />
+    <input type="submit" value="Forward" onclick="Forward()"> <br />
+    <input type="submit" value="Rotate Left" onclick="rotate('left')">
+    <input type="submit" value="Rotate Right" onclick="rotate('right')">
+  
+  
+  </section>
+  <br />
+  <input type="text" id="X">
+  <input type="text" id="Y">
+  <input type="submit" value="neighbors" onclick="neighbors()">
+  <br />
+  <input type="submit" value="New Maze" onclick="$('#theMaze').empty();mazeCreate()">
+  <input type="submit" value="Maze Display" onclick="mazeDisplay(map); endStart()">
+  <input type="submit" value="The Path" onclick="pathing(Mstart)">
 
   <section id="theMaze">
   </section>
-  <input type="submit" value="Submit" onclick="mazeDisplay(maze.map)">
 </section>
+<br />
 
 <style>
+#viewport {
+  margin-left: auto;
+  margin-right: auto;
+  width: 880px;
+  height: 780px;
+}
+
+.centerView {
+  background-image: url('C:/Users/chris/Desktop/coding-environment/src/radiance/app/assets/images/viewportCenterWall.png');
+  background-position: 0px -50px;
+  width: 720px;
+  height: 620px;
+
+}
+
+#viewport .corner {
+  background-image: url('C:/Users/chris/Desktop/coding-environment/src/radiance/app/assets/images/viewportCorner.png');
+  width: 80px;
+  height: 80px;
+}
+
+#viewport .wallLeftRight {
+  background-image: url('C:/Users/chris/Desktop/coding-environment/src/radiance/app/assets/images/viewportLR.png');
+  width: 720px;
+  height: 80px;
+}
+
+#viewport .wallUpDown {
+  background-image: url('C:/Users/chris/Desktop/coding-environment/src/radiance/app/assets/images/viewportTB.png');
+  width: 80px;
+  height: 620px;
+}
+
+#viewport .mainView {
+  background-image: url('C:/Users/chris/Desktop/coding-environment/src/radiance/app/assets/images/viewportMain.png');
+  background-position: 0px -50px;
+  width: 720px;
+  height: 620px;
+}
+
+#viewportTemp div {
+  border-style: solid;
+  border-width: 1px;
+  height: 1.5em;
+}
+
+.forward {
+  width: 106px;
+}
+.left, .right {
+  width: 50px;
+}
+
 div {
+  display: inline-block;
+  padding: 0px 0px 0px 0px;
+  margin: 0px 0px 0px 0px;
+}
+.mazeRow {
+  display: block;
+
+}
+.mazeColumn {
   display: inline-block;
   width: 50px;
   height: 50px;
-  }
-
-.mazeRow {}
-.mazeColumn   {color: blue;}
+}
 .Red {
   background-color: Red;
 }
 .Green {
   background-color: Green;
 }
-p    {color: red;}
+
+.Pathed {
+  color: blue
+}
 </style>
 
 
 <script>
+let map = [];
+let Mstart = [];
+let Mend = [];
+let neighborsFound = {};
+let shortestPath = [];
+let currLocation = [];
+let facing = "north";
+
+let frames = {
+  sideWall = "",
+  sideDoor = "",
+  mainWall = ""
+};
+
+
 $(function() {
-  $.get("/mazes").success( function(data) {
-    $.each(data, function(index, maze) {
-      console.log(maze.source);
-    });
-    maze.init();
-    // mazeCreate(maze.map);
-  });
+  mazeCreate();
 });
 
 
 
+Forward = function () {
+  // use facing to determain the looking direction to see where forward next is 
+  direction = {
+    'north' : [-1,0],
+    'east' : [0,1],
+    'west' : [0,-1],
+    'south' : [1,0]
+  };
+  nextDirect = direction[facing];
+  let nextLocation = [];
+  nextLocation[0] = nextDirect[0] + currLocation[0];
+  nextLocation[1] = nextDirect[1] + currLocation[1];
+  if (map[nextLocation[0]][nextLocation[1]] == true) {
+    currLocation[0] = nextLocation[0];
+    currLocation[1] = nextLocation[1];
+    nextRooms = neighbors(nextLocation[0],nextLocation[1]);
+    $(".currFacing").text(facing);
+    $(".currLoc").text(currLocation[0] + ", " + currLocation[1]);
+    if (nextRooms[facing] != false) {
+      $(".forward").text("Room");
+    } else {
+      $(".forward").text("Wall");
+    }
+    if (nextRooms[rotateCheck("left")] != false) {
+      $(".left").text("Room");
+    } else {
+      $(".left").text("Wall");
+    }
+    if (nextRooms[rotateCheck("right")] != false) {
+      $(".right").text("Room");
+    } else {
+      $(".right").text("Wall");
+    }
+  }
+  if (currLocation[0] == Mend[0] && currLocation[1] == Mend[1]) {
+    console.log("The End");
+  }
+};
+
+rotate = function (lorr) {
+  facing = rotateCheck(lorr); 
+  nextRooms = neighbors(currLocation[0],currLocation[1]);
+  $(".currLoc").text(currLocation[0] + ", " + currLocation[1]);
+  $(".currFacing").text(facing);
+  if (nextRooms[facing] != false) {
+    $(".forward").text("Room");
+  } else {
+    $(".forward").text("Wall");
+  }
+  if (nextRooms[rotateCheck("left")] != false) {
+    $(".left").text("Room");
+  } else {
+    $(".left").text("Wall");
+  }
+  if (nextRooms[rotateCheck("right")] != false) {
+    $(".right").text("Room");
+  } else {
+    $(".right").text("Wall");
+  }
+  
+};
+
+rotateCheck = function (lorr, looking = facing) {
+  // lorr = Left or Right
+  switch(looking) {
+  case "north":
+    // code block
+    if(lorr == "left") {
+      return "west";
+    } else {
+      return "east";
+    }
+    break;
+  case "east":
+    // code block
+    if(lorr == "left") {
+      return "north";
+    } else {
+      return "south";
+    }
+    break;
+  case "south":
+    // code block
+    if(lorr == "left") {
+      return "east";
+    } else {
+      return "west";
+    }
+    break;
+  case "west":
+    // code block
+    if(lorr == "left") {
+      return "south";
+    } else {
+      return "north";
+    }
+    break;
+  default:
+    // code block
+  }
+};
+
+pathing = function (newSquare, prevPath = []) {
+  // let starting = neighbors(Mstart[0],Mstart[1]);
+  let newNeighbors = neighbors(newSquare[0],newSquare[1]);
+  prevPath.push([newSquare[0],newSquare[1]]);
+  let directions = ["north","east","south","west"];
+  // object crawler
+  for (let eachDir = 0; eachDir < directions.length; eachDir++) {
+    const currDir = directions[eachDir];
+    const dirVal = newNeighbors[currDir];
+    if(dirVal != false) {
+      if(indexOfForArrays(prevPath,Mend) != -1) {
+        // The path has found the end.
+        shortestPath = prevPath;
+        turnBlue(prevPath);
+        return prevPath;
+      } else if(indexOfForArrays(prevPath,dirVal) == -1) {
+        // pathStack.push(dirVal);
+        setTimeout(pathing([dirVal[0],dirVal[1]],prevPath),2000)
+      };
+    };
+  };
+};
+
+turnBlue = function (pathStack) {
+  for (let allOfThem = 0; allOfThem < pathStack.length; allOfThem++) {
+    const element = pathStack[allOfThem]; // in an array [Y,X]
+    // :nth-child(n)
+    // .mazeRow
+    // .mazeColumn 
+    rowSelecter = ".mazeRow:nth-child(" + (parseInt(element[0]) + 1) + ")";
+    columnSelecter = rowSelecter + ">.mazeColumn:nth-child(" + (parseInt(element[1]) + 1) + ")";
+    $(columnSelecter).addClass("Pathed");
+  }
+
+};
+
+
+neighbors = function (Y, X) {
+  if (typeof X == 'undefined') X = parseInt($("#X").val(), 10);
+  if (typeof Y == 'undefined') Y = parseInt($("#Y").val(), 10);
+  // log the value of north, east, south, and west squares based of inputted x & y
+  neighborsFound = {
+    north : [],
+    east  : [],
+    south : [],
+    west  : []
+  };
+  // North Y cant be lower then 0
+      if((Y - 1) >= 0 && map[Y - 1][X] == true) {
+        neighborsFound.north = [(Y - 1),X];
+      } else {
+        neighborsFound.north = false;
+      };
+      // East - X can not be larger or equal to map[0].length
+      if((X + 1) < map[0].length && map[Y][X + 1] == true) {
+        neighborsFound.east = [Y,(X + 1)];
+      } else {
+        neighborsFound.east = false;
+      };
+      // South - Y can not be larger or equal to map.length
+      if((Y + 1) < map.length && map[Y + 1][X] == true) {
+        neighborsFound.south = [(Y + 1),X];
+      } else {
+        neighborsFound.south = false;
+      };
+      // West - X must be larger or equal to 0
+      if((X - 1) >= 0 && map[Y][X - 1] == true) {
+        neighborsFound.west = [Y,(X - 1)];
+      } else {
+        neighborsFound.west = false;
+      };
+  // console.log("North - " + neighborsFound.north + ": East - " + neighborsFound.east + ": South - " + neighborsFound.south + ": West - " + neighborsFound.west);
+  return neighborsFound;
+};
+
+endStart = function () {
+  Mstart[0] = [0];
+  Mend[0] = [0];
+  foundS = false;
+  foundE = false;
+  x = 0;
+  y = 0;
+  while (!foundS) {
+    if (map[y][x]) {
+      Mstart[0] = y;
+      Mstart[1] = x;
+      foundS = true;
+    }
+    x++;
+    if (x >= map.length) {
+      x = 0
+      y++;
+    }
+  };
+  x = map[0].length - 1;
+  y = map.length - 1;
+  while (!foundE) {
+    if (map[y][x]) {
+      Mend[0] = y;
+      Mend[1] = x;
+      foundE = true;
+    }
+    x--;
+    if(x <= 0) {
+      x = map[0].length - 1;
+      y--;
+    }
+  }
+};
+
 mazeDisplay = function(printMaze) {
   // theMaze should be an array with several arrays inside of it. 
-    // theMaze[x][1 ... ?] should contain a variable 1-16 that defines which direction each node, or 'Room', is facing
-  
-  //var theMaze = mazeMath(printMaze);
-  var theMaze = printMaze;
   var currentRow;
-  for (currentRow = 0; currentRow < theMaze.length; currentRow++) {
+  for (currentRow = 0; currentRow < printMaze.length; currentRow++) {
     var newRow = $("<div></div>").addClass("mazeRow");
     var currentColumn;
-    for (currentColumn = 0; currentColumn < theMaze[currentRow].length; currentColumn++) {
+    for (currentColumn = 0; currentColumn < printMaze[currentRow].length; currentColumn++) {
       var newColumn = $("<div></div>");
       newColumn.addClass("mazeColumn");
-      currRoom = theMaze[currentColumn][currentRow];
-      if(currRoom != '0' && currRoom != '?') {
-        newColumn.addClass("Green");
-      } else {
-        newColumn.addClass("Red");
-      }
-      newRow.append(newColumn.text(currRoom));
-    }
-    $("#theMaze").append(newRow);
-  } 
-  //////////////////////////////////
-  
-  $("#theMaze").append("<hr></hr>")
-  var mazeMathed = mazeMath(printMaze);
-  test = mazeMathed;
-  console.log(mazeMathed);
-  for (currentRow = 0; currentRow < mazeMathed.length; currentRow++) {
-    var newRow = $("<div></div>").addClass("mazeRow");
-    var currentColumn;
-    for (currentColumn = 0; currentColumn < mazeMathed[currentRow].length; currentColumn++) {
-      var newColumn = $("<div></div>");
-      newColumn.addClass("mazeColumn");
-      currRoom = mazeMathed[currentColumn][currentRow];
+      currRoom = printMaze[currentRow][currentColumn];
       if(currRoom != '0' && currRoom != '?') {
         newColumn.addClass("Green");
       } else {
@@ -87,233 +380,8 @@ mazeDisplay = function(printMaze) {
   } 
 }
 
-/*
----1 - North
----2 - East
----3 - North East
----4 - South
----5 
----6
----7
----8 - West
----9
-10:a
-11:b
-12:c
-13:d
-14:e
-15:f
-16:g
-
-*/
-var test = [];
-mazeMath = function(theMaze) {
-let thisMaze = theMaze;
-const directions = [[-1,0],[0,1],[1,0],[0,-1]];
-for (let currentY = 0; currentY < theMaze.length; currentY++) {
-  const row = theMaze[currentY]; // The Current Row
-  for (let currentX = 0; currentX < row.length; currentX++) {
-    const room = row[currentX]; // The Element 
-    // check to see if the matrix element is a room
-    var nextRooms = [0,0,0,0];
-    if (room == true) {
-      for (let currDir = 0; currDir < directions.length; currDir++) {
-        const dirArray = directions[currDir];
-        // check if the next room (according to dirArray) is an actual matrix element 
-        let dirY = currentY + dirArray[0];
-        let dirX = currentX + dirArray[1];
-        if (dirY >= 0 && dirX >=0) {
-          // check if the next room is a room 
-          if (theMaze[dirY][dirX] == true) {
-            // show outside of the block that this room is an avaiable room
-            nextRooms[currDir] = 1;
-          };
-        };
-      }; 
-    };
-    // 
-    nextRooms = JSON.stringify(nextRooms);
-    //currRoom = thisMaze[currentY,currentX];
-    doors = '';
-    //*** const directions = [[-1,0],[0,1],[1,0],[0,-1]];
-    if (nextRooms === '[1,0,0,0]') {
-      doors = 'North';
-    } else if (nextRooms === '[1,1,0,0]') {
-      doors = 'North East';
-    } else if (nextRooms === '[1,1,1,0]') {
-      doors = 'North East South';
-    } else if (nextRooms === '[1,1,1,1]') {
-      doors = 'North East South West';
-    } else if (nextRooms === '[0,1,0,0]') {
-      doors = 'East';
-    } else if (nextRooms === '[0,1,1,0]') {
-      doors = 'East South';
-    } else if (nextRooms === '[0,1,1,1]') {
-      doors = 'East South West';
-    } else if (nextRooms === '[0,0,1,0]') {
-      doors = 'South';
-    } else if (nextRooms === '[0,0,1,1]') {
-      doors = 'South West';
-    } else if (nextRooms === '[0,0,0,1]') {
-      doors = 'West';
-    } else if (nextRooms === '[1,0,0,1]') {
-      doors = 'North West';
-    } else if (nextRooms === '[1,0,1,0]') {
-      doors = 'North South';
-    } else if (nextRooms === '[1,0,1,1]') {
-      doors = 'North South West';
-    } else if (nextRooms === '[1,1,0,1]') {
-      doors = 'North East West';
-    } else if (nextRooms === '[0,1,0,1]') {
-      doors = 'East West';
-    } else if (nextRooms === '[0,0,0,0]') {
-      doors = 'None';
-    } else {
-      doors = 'Nont';
-    };
-    thisMaze[currentY][currentX] = doors;
-  };
-  return thisMaze;
-};
-
-/*
-// theMaze[currentRow][currentColumn]
-  var roomValue;
-  var currentRow;
-  for (currentRow = 0; currentRow < theMaze.length; currentRow++) {
-    var currentColumn;
-    for (currentColumn = 0; currentColumn < theMaze[currentRow].length; currentColumn++) {
-      // Each Room
-      // check if room is f
-      roomcheck = [0,0,0,0];
-      const directions = [[-1,0],[0,1],[1,0],[0,-1]]
-      for (let dirCheck = 0; dirCheck < 4; dirCheck++) {
-        console.log(theMaze[currentRow][currentColumn]);
-        currentX = directions[dirCheck][0];
-        currentY = directions[dirCheck][1];
-        const directions = [[-1,0],[0,1],[1,0],[0,-1]];
-        if (theMaze[currentRow][currentColumn] == true) { // make sure the current room is an actual room
-          if (currentRow + currentX > 0 && currentColumn + currentY > 0) { // Make sure youre not checking rooms that are not there. 
-            sideCheck = theMaze[(currentRow + currentX)][(currentColumn + currentY)]; // make sure the neighboring room is an actual room 
-            if(sideCheck == true){
-              roomcheck[dirCheck] = 1;
-            } 
-          };
-        };
-      }; 
-      roomcheck = JSON.stringify(roomcheck);
-      console.log(roomcheck);
-      if (roomcheck == '[0,0,0,0]'){
-        // FAIL
-        roomValue = '0';
-      } else if (roomcheck == '[1,0,0,0]') {
-        // NORTH
-        roomValue = '1';
-      } else if (roomcheck == '[0,1,0,0]') {
-        // EAST
-        roomValue = '2';
-      } else if (roomcheck == '[0,0,1,0]') {
-        // SOUTH
-        roomValue = '3';
-      } else if (roomcheck == '[0,0,0,1]') {
-        // WEST
-        roomValue = '4';
-      } else if (roomcheck == '[1,1,0,0]') {
-        // NORTH EAST
-        roomValue = '5';
-      } else if (roomcheck == '[1,0,1,0]') {
-        // NORTH SOUTH
-        roomValue = '6';
-      } else if (roomcheck == '[1,0,0,1]') {
-        // NORTH WEST
-        roomValue = '7';
-      } else if (roomcheck == '[0,1,1,0]') {
-        // EAST SOUTH
-        roomValue = '8';
-      } else if (roomcheck == '[0,1,0,1]') {
-        // EAST WEST
-        roomValue = '9';
-      } else if (roomcheck == '[0,0,1,1]') {
-        // SOUTH WEST
-        roomValue = 'a';
-      } else if (roomcheck == '[1,1,1,0]') {
-        // NORTH EAST SOUTH
-        roomValue = 'b';
-      } else if (roomcheck == '[0,1,1,1]') {
-        // EAST SOUTH WEST
-        roomValue = 'c';
-      } else if (roomcheck == '[1,0,1,1]') {
-        // NORTH SOUTH WEST
-        roomValue = 'd';
-      } else if (roomcheck == '[1,1,0,1]') {
-        // NORTH EAST WEST
-        roomValue = 'e';
-      } else if (roomcheck == '[1,1,1,1]') {
-        // NORTH EAST SOUTH WEST
-        roomValue = 'f';
-      } else {
-        roomValue = '?';
-      };
-      //console.log(roomValue);
-      theMaze[currentRow][currentColumn] = roomValue;
-    }
-  }  */
-};
-
-var warkingMaze = [];
-maze = {};
-maze.map = [];
-maze.init = function (width = 10, height = 10) {
-  maze.x = width/2|0;
-  maze.y = height/2|0;
-  for(var i=0;i<height;i++){
-    maze.map[i] = [];
-    for(var j=0;j<width;j++){
-      maze.map[i][j] = false;
-    };
-  };
-  maze.map[maze.y][maze.x] = true;
-  maze.route = [[maze.x,maze.y]];
-  const directions = [[1,0],[-1,0],[0,1],[0,-1]];
-  let alternatives = [];
-  for (let i = 0; i < directions.length; i++) {
-    // const element = array[i];
-    let nextY = maze.y + directions[i][1];
-    let nextX = maze.x + directions[i][0];
-    if (maze.map[nextY]!=undefined && maze.map[nextY][nextX] === false ) {
-      alternatives.push([nextY,nextX]);
-      //console.log(alternatives);
-      
-    };
-  };
-  //console.log(alternatives)
-  while (alternatives != 0) {
-    //console.log(alternatives);
-    
-    var nextElem = alternatives.pop(); // returns array [X,Y]
-    //console.log(nextElem);
-    maze.map[nextElem[1]][nextElem[0]] = true;
-    for (let i = 0; i < directions.length; i++) {
-      let nextY = maze.y + directions[i][1];
-      let nextX = maze.x + directions[i][0];
-
-      if (maze.map[nextY]!=undefined && maze.map[nextY][nextX] === false ) {
-      // if (nextY > 0 && nextY < height && nextX > 0 && nextX < width && maze.map[nextY][nextX] === false ) {
-        // alternatives.push([nextY,nextX]); // THIS IS CREATING THE LOOP 
-        console.log("IF + " + alternatives);
-        
-      };
-    };
-  };
-};
-
-
-/*
-routeMaze = [];
-mazeCreate = function(){
+mazeCreate = function(width = 10, height = 10){
   // Maze adapted from Gabriel Valfridsson's CodePen :: https://codepen.io/GabbeV/pen/viAec 
-  width = 5           //Number paths fitted horisontally
-  height = 5          //Number paths fitted vertically
   x = width/2|0       //Horisontal starting position
   y = height/2|0      //Vertical starting position
   // INIT
@@ -356,5 +424,26 @@ loop = function(){
   timer = setTimeout(loop,1)
   routeMaze = route;
 };
-*/ 
+
+
+// CODE FROM STACK OVERFLOW --- https://stackoverflow.com/questions/6315180/javascript-search-array-of-arrays
+Array.prototype.indexOfForArrays = function(search)
+{
+  var searchJson = JSON.stringify(search); // "[3,566,23,79]"
+  var arrJson = this.map(JSON.stringify); // ["[2,6,89,45]", "[3,566,23,79]", "[434,677,9,23]"]
+
+  return arrJson.indexOf(searchJson);
+  // CALL WITH BELOW FUNCTION 
+  // *** arr.indexOfForArrays([3,566,23,79]);
+  // *** 1
+};
+indexOfForArrays = function (main, index) {
+  var searchJson = JSON.stringify(index);
+  var arrJson = main.map(JSON.stringify);
+  debug = arrJson.indexOf(searchJson);
+  return debug;
+}
+
+
 </script>
+</body>
