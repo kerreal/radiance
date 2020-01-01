@@ -4,14 +4,38 @@
 </head>
 <body>
 
+<header>
+<div id="title">Radiance</div>
+<div id="spoiler">A Labyrinth Game</h2>
+ 
+</header>
 
 <section id="viewport">
-  <div class="corner"></div><div class="wallLeftRight"></div><div class="corner"></div><br />
-  <div class="wallUpDown"></div><div class="mainView"></div><div class="wallUpDown"></div><br />
-  <div class="corner"></div><div class="wallLeftRight"></div><div class="corner"></div>
+  <div id="border" class="corner left top"></div>
+  <div id="border" class="corner right top"></div>
+  <div id="border" class="corner left bottom"></div>
+  <div id="border" class="corner right bottom"></div>
+  <div id="border" class="wallUpDown left"></div>
+  <div id="border" class="wallUpDown right"></div>
+  <div id="border" class="wallLeftRight top"></div>
+  <div id="border" class="wallLeftRight bottom"></div>
+
+  <div class="mainView"></div>
+  
+  <img src="assets/mainDoor.png" class="tempWalls" id="mainWall" />
+  <img src="assets/sideWall.png" class="tempWalls" id="leftWall" />
+  <img src="assets/sideDoor" class="tempWalls" id="leftDoor" />
+  <img src="assets/sideWall.png" class="tempWalls" id="rightWall" />
+  <img src="assets/sideDoor" class="tempWalls" id="rightDoor" />
+
+  <div id="startMaze" class="mainView">
+    <div onclick="initilizeMaze()">> Start?</div>
+    <div class="instructions">Please use the WASD keys on your keyboard to move forward through doorwars, and to turn left and right in the Labyrinth.</div>
+  </div>
+
 </section>
 
-<section class="todoapp">
+<%# <section class="todoapp">
   <header class="header">
     <h1>Maze Generator</h1>
   </header>
@@ -30,30 +54,94 @@
   
   
   </section>
+  
   <br />
   <input type="text" id="X">
   <input type="text" id="Y">
   <input type="submit" value="neighbors" onclick="neighbors()">
   <br />
   <input type="submit" value="New Maze" onclick="$('#theMaze').empty();mazeCreate()">
-  <input type="submit" value="Maze Display" onclick="mazeDisplay(map); endStart()">
+  <input type="submit" value="Maze Display" onclick="mazeDisplay(map);">
   <input type="submit" value="The Path" onclick="pathing(Mstart)">
 
   <section id="theMaze">
-  </section>
+  </section> %>
+
 </section>
 <br />
 
 <style>
+body {
+  background-image: url('assets/viewportMain.png');
+  color: gold;
+}
+
+header {
+  font-family: 'neverwinter_normal', sans-serif;
+  text-shadow: 2px 2px 5px #8b8b53;
+  padding-bottom: 25px;
+}
+
+#title {
+  position: relative;
+  font-size: 5em;
+  padding-left: 30px;
+  padding-top: 15px;
+  letter-spacing: -1px;
+}
+#spoiler {
+  font-family: 'gold_box_gamesregular', sans-serif;
+  
+  position: relative;
+  left: -150px;
+  top: 20px;
+
+}
+
+.instructions {
+  margin-top: 158px;
+  margin-left: 88px;
+  margin-right: 70px;
+}
+
 #viewport {
   margin-left: auto;
   margin-right: auto;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  padding: 0px 0px 0px 0px;
   width: 880px;
   height: 780px;
+  position: relative;
+}
+
+#startMaze {
+  font-family: 'pc_seniorregular', sans-serif;
+  z-index: 15;
+}
+
+@keyframes blink { 
+   50% { border-color: #8b8b53; } 
+}
+
+#startMaze div:first-child {
+  font-size: 2em;
+  margin-top: 300px;
+  margin-left: 220px;
+  border-bottom: 2px solid;
+  animation: blink .5s step-end infinite alternate;
+}
+
+#startMaze div:first-child:hover{
+  cursor: pointer;
+}
+
+#viewport * {
+  position: absolute;
 }
 
 .centerView {
-  background-image: url('C:/Users/chris/Desktop/coding-environment/src/radiance/app/assets/images/viewportCenterWall.png');
+  background-image: url('assets/viewportCenterWall.png');
   background-position: 0px -50px;
   width: 720px;
   height: 620px;
@@ -61,28 +149,85 @@
 }
 
 #viewport .corner {
-  background-image: url('C:/Users/chris/Desktop/coding-environment/src/radiance/app/assets/images/viewportCorner.png');
+  position: absolute;
+  background-image: url('assets/viewportCorner.png');
   width: 80px;
   height: 80px;
+}
+
+#viewport #border {
+  z-index: 10;
+}
+#viewport .left {
+  left: 0px;
+}
+
+#viewport .bottom {
+  bottom: 0px;
+}
+
+#viewport .right {
+  right: 0px;
+}
+
+#viewport .top {
+  top: 0px;
 }
 
 #viewport .wallLeftRight {
-  background-image: url('C:/Users/chris/Desktop/coding-environment/src/radiance/app/assets/images/viewportLR.png');
+  background-image: url('assets/viewportLR.png');
   width: 720px;
   height: 80px;
+  left: 80px;
 }
 
 #viewport .wallUpDown {
-  background-image: url('C:/Users/chris/Desktop/coding-environment/src/radiance/app/assets/images/viewportTB.png');
+  background-image: url('assets/viewportTB.png');
   width: 80px;
   height: 620px;
+  top: 80px;
 }
 
 #viewport .mainView {
-  background-image: url('C:/Users/chris/Desktop/coding-environment/src/radiance/app/assets/images/viewportMain.png');
+  background-image: url('assets/viewportMain.png');
   background-position: 0px -50px;
+  top: 80px;
+  left: 80px;
   width: 720px;
   height: 620px;
+}
+
+.tempWalls {
+  position: absolute;
+  z-index: 5;
+  top: 30px;
+  left: 80px;
+  width: 720px;
+  height: 721px;
+}
+
+#viewport #rightWall {
+  -moz-transform: scaleX(-1);
+  -o-transform: scaleX(-1);
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+}
+
+#viewport #rightDoor {
+  -moz-transform: scaleX(-1);
+  -o-transform: scaleX(-1);
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+}
+
+.invisable {
+  opacity: 0;
+}
+
+#viewportTemp div {
+  border-style: solid;
+  border-width: 1px;
+  height: 1.5em;
 }
 
 #viewportTemp div {
@@ -134,15 +279,74 @@ let shortestPath = [];
 let currLocation = [];
 let facing = "north";
 
-let frames = {
-  sideWall = "",
-  sideDoor = "",
-  mainWall = ""
+initilizeMaze = function() {
+  endStart();
+  currLocation = Mstart;
+  hideAll();
+  // use currLocation to start the player facing a door
+  // find neightbors?
+  nearestDoor = neighbors(currLocation[0],currLocation[1]);
+  console.log(nearestDoor);
+  rotate('right');
+  $("#startMaze").hide(500);
 };
 
+hideAll = function() {
+  $("#mainWall").hide();
+  $("#leftWall").hide();
+  $("#leftDoor").hide();
+  $("#rightWall").hide();
+  $("#rightDoor").hide();
+};
+
+revealDoors = function() {
+  hideAll();
+  if (nextRooms[facing] != false) {
+    // $(".forward").text("Room");
+    $("#mainWall").show(200);
+  } else {
+    // $(".forward").text("Wall");
+  }
+  if (nextRooms[rotateCheck("left")] != false) {
+    // $(".left").text("Room");
+    $("#leftDoor").show(200);
+  } else {
+    // $(".left").text("Wall");
+    $("#leftWall").show(200);
+  }
+  if (nextRooms[rotateCheck("right")] != false) {
+    // $(".right").text("Room");
+    $("#rightDoor").show(200);
+  } else {
+    // $(".right").text("Wall");
+    $("#rightWall").show(200);
+  }
+
+}
 
 $(function() {
   mazeCreate();
+  $(window).keypress(function(e) {
+    var ev = e || window.event;
+    var key = ev.keyCode || ev.which;
+    //do stuff with "key" here...
+    //  var new_div = $('<div/>');
+    //  new_div.hide();
+    //  new_div.css('color', 'darkgreen');
+    //  new_div.html('key code ' + key + ' was pressed!');      
+    //  $('body').append(new_div);
+    //  new_div.fadeIn();
+    if (key == 97) {
+      //console.log("A");
+      rotate('left');
+    } else if(key == 100) {
+      //console.log("D");
+      rotate('right');
+    } else if(key == 119) {
+      //console.log("W");
+      Forward();
+    }
+   });
 });
 
 
@@ -165,24 +369,13 @@ Forward = function () {
     nextRooms = neighbors(nextLocation[0],nextLocation[1]);
     $(".currFacing").text(facing);
     $(".currLoc").text(currLocation[0] + ", " + currLocation[1]);
-    if (nextRooms[facing] != false) {
-      $(".forward").text("Room");
-    } else {
-      $(".forward").text("Wall");
-    }
-    if (nextRooms[rotateCheck("left")] != false) {
-      $(".left").text("Room");
-    } else {
-      $(".left").text("Wall");
-    }
-    if (nextRooms[rotateCheck("right")] != false) {
-      $(".right").text("Room");
-    } else {
-      $(".right").text("Wall");
-    }
+    revealDoors();
   }
   if (currLocation[0] == Mend[0] && currLocation[1] == Mend[1]) {
-    console.log("The End");
+    //console.log("The End");
+    $("#startMaze div:first-child").text("> Restart?");
+    $(".instructions").text("You Won!");
+    $("#startMaze").show();
   }
 };
 
@@ -191,21 +384,7 @@ rotate = function (lorr) {
   nextRooms = neighbors(currLocation[0],currLocation[1]);
   $(".currLoc").text(currLocation[0] + ", " + currLocation[1]);
   $(".currFacing").text(facing);
-  if (nextRooms[facing] != false) {
-    $(".forward").text("Room");
-  } else {
-    $(".forward").text("Wall");
-  }
-  if (nextRooms[rotateCheck("left")] != false) {
-    $(".left").text("Room");
-  } else {
-    $(".left").text("Wall");
-  }
-  if (nextRooms[rotateCheck("right")] != false) {
-    $(".right").text("Room");
-  } else {
-    $(".right").text("Wall");
-  }
+  revealDoors();
   
 };
 
@@ -380,7 +559,7 @@ mazeDisplay = function(printMaze) {
   } 
 }
 
-mazeCreate = function(width = 10, height = 10){
+mazeCreate = function(width = 5, height = 5){
   // Maze adapted from Gabriel Valfridsson's CodePen :: https://codepen.io/GabbeV/pen/viAec 
   x = width/2|0       //Horisontal starting position
   y = height/2|0      //Vertical starting position
